@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/dimensions.dart';
+
 class AddQuantityWidget extends StatefulWidget {
   @override
   _AddQuantityWidgetState createState() => _AddQuantityWidgetState();

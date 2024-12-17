@@ -1,38 +1,43 @@
-import 'package:flutter/material.dart';
+import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/custom_style.dart';
+import 'package:pulse/screens/welcome_screen.dart';
 import 'package:pulse/widgets/back_widget.dart';
+
 class SignUpScreen extends StatefulWidget {
   @override
   _SignUpScreenState createState() => _SignUpScreenState();
 }
+
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
+  TextEditingController mobileController = TextEditingController();
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController cityController = TextEditingController();
+  TextEditingController StreetController = TextEditingController();
   bool _toggleVisibility = true;
   bool checkedValue = false;
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColor.secondary,
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: SafeArea(
-          child: Stack(
-            children: [
-              BackWidget(name: Strings.createAnAccount,),
-              bodyWidget(context)
-            ],
-          ),
+      appBar: AppBar(title: Text(Strings.createAccount),),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            bodyWidget(context)
+          ],
         ),
       ),
     );
   }
+
   bodyWidget(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -41,235 +46,161 @@ class _SignUpScreenState extends State<SignUpScreen> {
             key: formKey,
             child: Padding(
               padding: const EdgeInsets.only(
-                top: Dimensions.heightSize * 2,
-                left: Dimensions.marginSize,
-                right: Dimensions.marginSize
-              ),
+                  top: Dimensions.heightSize * 2,
+                  left: Dimensions.marginSize,
+                  right: Dimensions.marginSize),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Material(
-                    elevation: 40.0,
-                    shadowColor: CustomColor.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    child: TextFormField(
-                      style: CustomStyle.textStyle,
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value){
-                        if(value!.isEmpty){
-                          return Strings.pleaseFillOutTheField;
-                        }else{
-                          return null;
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: Strings.demoEmail,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        labelStyle: CustomStyle.textStyle,
-                        filled: true,
-                        fillColor: CustomColor.accent,
-                        hintStyle: CustomStyle.textStyle,
-                        focusedBorder: CustomStyle.focusBorder,
-                        enabledBorder: CustomStyle.focusErrorBorder,
-                        focusedErrorBorder: CustomStyle.focusErrorBorder,
-                        errorBorder: CustomStyle.focusErrorBorder,
-                        prefixIcon: Icon(
-                          Icons.mail,
-                          color: CustomColor.primary,
-                        )
-                      ),
-                    ),
+                  CustomInput(
+                    controller: usernameController,
+                    hintText: Strings.typeEmail,
+                    textInputType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || (!isText(value, isRequired: true))) {
+                        return 'Error Username';
+                      }
+                      return null;
+                    },
                   ),
-                  SizedBox(height: Dimensions.heightSize,),
-                  Material(
-                    elevation: 40.0,
-                    shadowColor: CustomColor.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    child: TextFormField(
-                      style: CustomStyle.textStyle,
-                      controller: passwordController,
-                      validator: (value){
-                        if(value!.isEmpty){
-                          return Strings.pleaseFillOutTheField;
-                        }else{
-                          return null;
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: Strings.typePassword,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        labelStyle: CustomStyle.textStyle,
-                        focusedBorder: CustomStyle.focusBorder,
-                        enabledBorder: CustomStyle.focusErrorBorder,
-                        focusedErrorBorder: CustomStyle.focusErrorBorder,
-                        errorBorder: CustomStyle.focusErrorBorder,
-                        filled: true,
-                        fillColor: CustomColor.accent,
-                        hintStyle: CustomStyle.textStyle,
-                        prefixIcon: Icon(
-                            Icons.lock,
-                          color: CustomColor.primary,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _toggleVisibility = !_toggleVisibility;
-                            });
-                          },
-                          icon: _toggleVisibility
-                              ? Icon(
-                            Icons.visibility_off,
-                            color: CustomColor.primary,
-                          )
-                              : Icon(
-                            Icons.visibility,
-                            color: CustomColor.primary,
-                          ),
-                        ),
-                      ),
-                      obscureText: _toggleVisibility,
-                    ),
+                  SizedBox(
+                    height: Dimensions.heightSize,
                   ),
-                  SizedBox(height: Dimensions.heightSize),
-                  Material(
-                    elevation: 40.0,
-                    shadowColor: CustomColor.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    child: TextFormField(
-                      style: CustomStyle.textStyle,
-                      controller: confirmPasswordController,
-                      validator: (value){
-                        if(value!.isEmpty){
-                          return Strings.pleaseFillOutTheField;
-                        }else{
-                          return null;
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: Strings.typePassword,
-                        contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-                        labelStyle: CustomStyle.textStyle,
-                        focusedBorder: CustomStyle.focusBorder,
-                        enabledBorder: CustomStyle.focusErrorBorder,
-                        focusedErrorBorder: CustomStyle.focusErrorBorder,
-                        errorBorder: CustomStyle.focusErrorBorder,
-                        filled: true,
-                        fillColor: CustomColor.accent,
-                        prefixIcon: Icon(
-                            Icons.lock,
-                          color: CustomColor.primary,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _toggleVisibility = !_toggleVisibility;
-                            });
-                          },
-                          icon: _toggleVisibility
-                              ? Icon(
-                            Icons.visibility_off,
-                            color: CustomColor.primary,
-                          )
-                              : Icon(
-                            Icons.visibility,
-                            color: CustomColor.primary,
-                          ),
-                        ),
-                        hintStyle: CustomStyle.textStyle,
-                      ),
-                      obscureText: _toggleVisibility,
-                    ),
+                  CustomInput(
+                    controller: emailController,
+                    hintText: Strings.typeEmail,
+                    textInputType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null ||
+                          (!isValidEmail(value, isRequired: true))) {
+                        return 'Error Email';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(
+                    height: Dimensions.heightSize,
+                  ),
+                  CustomInput(
+                    controller: passwordController,
+                    hintText: Strings.typePassword,
+                    textInputType: TextInputType.visiblePassword,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null ||
+                          (!isValidPassword(value, isRequired: true))) {
+                        return 'Error Password';
+                      }
+                      return null;
+                    },
                   ),
                   SizedBox(height: Dimensions.heightSize),
                 ],
               ),
-            )
-        ),
+            )),
         SizedBox(height: Dimensions.heightSize * 2),
         Padding(
-          padding: const EdgeInsets.only(left: Dimensions.marginSize, right: Dimensions.marginSize),
+          padding: const EdgeInsets.only(
+              left: Dimensions.marginSize, right: Dimensions.marginSize),
           child: GestureDetector(
             child: Container(
               height: 50.0,
               width: MediaQuery.of(context).size.width,
               decoration: BoxDecoration(
                   color: CustomColor.primary,
-                  borderRadius: BorderRadius.all(Radius.circular(Dimensions.radius * 3))
-              ),
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(Dimensions.radius * 3))),
               child: Center(
                 child: Text(
                   Strings.createAnAccount.toUpperCase(),
                   style: TextStyle(
                       color: Colors.white,
                       fontSize: Dimensions.largeTextSize,
-                    fontWeight: FontWeight.bold
-                  ),
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),
+            onTap: () async {
+              setState(() {
+                isLoading = true;
+              });
+              if (formKey.currentState!.validate()) {
+                await AuthService()
+                    .register(
+                        email: emailController.text,
+                        password: passwordController.text)
+                    .then((value) async {
+                  if (value!.contains('Success')) {
+                    Map<String, dynamic> userDetails = {
+                      'email': emailController.text,
+                      // 'image': imageUrl,
+                      'mobile': mobileController.text,
+                      'username': usernameController.text,
+                      'notification': false,
+                      'payments': [],
+                      'privilege': 1,
+                      // Add other user data as needed
+                    };
+
+                    try {
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
+                          .set(userDetails);
+                      if (FirebaseAuth.instance.currentUser!.emailVerified) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => IntroScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      } else {
+                        showMsg(
+                          context,
+                          'Account Verification\nYou should verify your account.',
+                          oncancel: () {
+                            FirebaseAuth.instance.signOut();
+                            Navigator.pop(context);
+                          },
+                          onpress: () async {
+                            await FirebaseAuth.instance.currentUser!
+                                .sendEmailVerification()
+                                .then(
+                                  (value) => FirebaseAuth.instance.signOut(),
+                                );
+
+                            Navigator.pop(context);
+                          },
+                        );
+                      }
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(e.toString())),
+                      );
+                    }
+                  }
+                }).catchError(
+                  (onError) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(onError.toString())),
+                    );
+                  },
+                );
+              }
+              setState(() {
+                isLoading = false;
+              });
+            },
           ),
         ),
         SizedBox(height: Dimensions.heightSize * 2),
         Text(
           Strings.orLoginWith,
           style: TextStyle(
-              color: Colors.black,
-              fontSize: Dimensions.largeTextSize,
+            color: Colors.black,
+            fontSize: Dimensions.largeTextSize,
           ),
-        ),
-        SizedBox(height: Dimensions.heightSize * 2),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Material(
-              elevation: 2,
-              borderRadius: BorderRadius.circular(Dimensions.radius * 3),
-              child: Container(
-                height: Dimensions.buttonHeight,
-                width: Dimensions.buttonHeight,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(Dimensions.radius * 3)
-                ),
-                child: Image.asset(
-                    'assets/images/google.png'
-                ),
-              ),
-            ),
-            SizedBox(width: Dimensions.widthSize,),
-            Material(
-              elevation: 2,
-              borderRadius: BorderRadius.circular(Dimensions.radius * 3),
-              child: Container(
-                height: Dimensions.buttonHeight,
-                width: Dimensions.buttonHeight,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(Dimensions.radius * 3)
-                ),
-                child: Image.asset(
-                    'assets/images/facebook.png'
-                ),
-              ),
-            ),
-            SizedBox(width: Dimensions.widthSize,),
-            Material(
-              elevation: 2,
-              borderRadius: BorderRadius.circular(Dimensions.radius * 3),
-              child: Container(
-                height: Dimensions.buttonHeight,
-                width: Dimensions.buttonHeight,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(Dimensions.radius * 3)
-                ),
-                child: Image.asset(
-                    'assets/images/twitter.png'
-                ),
-              ),
-            ),
-          ],
         ),
         SizedBox(height: Dimensions.heightSize * 2),
         Column(
@@ -291,12 +222,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         fontSize: Dimensions.defaultTextSize,
                         fontWeight: FontWeight.bold,
                         color: CustomColor.blue,
-                        decoration: TextDecoration.underline
-                    ),
+                        decoration: TextDecoration.underline),
                   ),
                   onTap: () {
                     print('go to privacy url');
-                    _showTermsConditions();
+                    // _showTermsConditions();
                   },
                 ),
                 Text(
@@ -319,9 +249,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               child: Text(
                 Strings.signIn.toUpperCase(),
                 style: TextStyle(
-                  color: CustomColor.primary,
-                  fontWeight: FontWeight.bold
-                ),
+                    color: CustomColor.primary, fontWeight: FontWeight.bold),
               ),
               onTap: () {
                 /*Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
@@ -332,232 +260,5 @@ class _SignUpScreenState extends State<SignUpScreen> {
         )
       ],
     );
-  }
-  Future<bool> _showTermsConditions() async {
-    return (await showDialog(
-      context: context,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height,
-        width: MediaQuery.of(context).size.width,
-        color: CustomColor.primary,
-        child: Stack(
-          children: [
-            Positioned(
-                top: -35.0,
-                left: -50.0,
-                child: Image.asset(
-                    'assets/images/splash_logo.png'
-                )
-            ),
-            Positioned(
-                right: -35.0,
-                bottom: -20.0,
-                child: Image.asset(
-                    'assets/images/splash_logo.png'
-                )
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: Dimensions.defaultPaddingSize * 2,
-                  bottom: Dimensions.defaultPaddingSize * 2
-              ),
-              child: Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
-                child: AlertDialog(
-                    content: Stack(
-                      children: [
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 45,
-                          child: SingleChildScrollView(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(height: Dimensions.heightSize * 2,),
-                                Text(
-                                  Strings.ourPolicyTerms,
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.7),
-                                      fontSize: Dimensions.largeTextSize,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Text(
-                                  'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old',
-                                  style: CustomStyle.textStyle,
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: CustomColor.accent,
-                                          fontSize: Dimensions.extraLargeTextSize
-                                      ),
-                                    ),
-                                    SizedBox(width: 5.0,),
-                                    Expanded(
-                                      child: Text(
-                                        'simply random text. It has roots in a piece of classical Latin literature ',
-                                        style: CustomStyle.textStyle,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: CustomColor.accent,
-                                          fontSize: Dimensions.extraLargeTextSize
-                                      ),
-                                    ),
-                                    SizedBox(width: 5.0,),
-                                    Expanded(
-                                      child: Text(
-                                        'Distracted by the readable content of a page when looking at its layout.',
-                                        style: CustomStyle.textStyle,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '•',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: CustomColor.accent,
-                                          fontSize: Dimensions.extraLargeTextSize
-                                      ),
-                                    ),
-                                    SizedBox(width: 5.0,),
-                                    Expanded(
-                                      child: Text(
-                                        'Available, but the majority have suffered alteration',
-                                        style: CustomStyle.textStyle,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: Dimensions.heightSize * 2,),
-                                Text(
-                                  'When do we contact information ?',
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.7),
-                                      fontSize: Dimensions.largeTextSize,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Text(
-                                  'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old',
-                                  style: CustomStyle.textStyle,
-                                ),
-                                SizedBox(height: Dimensions.heightSize * 2,),
-                                Text(
-                                  'Do we use cookies ?',
-                                  style: TextStyle(
-                                      color: Colors.black.withOpacity(0.7),
-                                      fontSize: Dimensions.largeTextSize,
-                                      fontWeight: FontWeight.bold
-                                  ),
-                                ),
-                                SizedBox(height: Dimensions.heightSize),
-                                Text(
-                                  'Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old',
-                                  style: CustomStyle.textStyle,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            child: Align(
-                              alignment: Alignment.bottomCenter,
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  GestureDetector(
-                                    child: Container(
-                                      height: 35.0,
-                                      width: 100.0,
-                                      decoration: BoxDecoration(
-                                          color: CustomColor.secondary,
-                                          borderRadius: BorderRadius.all(Radius.circular(5.0))
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          Strings.decline,
-                                          style: TextStyle(
-                                              color: CustomColor.primary,
-                                              fontSize: Dimensions.defaultTextSize,
-                                              fontWeight: FontWeight.bold
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  SizedBox(width: 10.0,),
-                                  GestureDetector(
-                                    child: Container(
-                                      height: 35.0,
-                                      width: 100.0,
-                                      decoration: BoxDecoration(
-                                          color: CustomColor.primary,
-                                          borderRadius: BorderRadius.all(Radius.circular(5.0))
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          Strings.agree,
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: Dimensions.defaultTextSize,
-                                            fontWeight: FontWeight.bold
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    onTap: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      ],
-                    )
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    )) ?? false;
   }
 }
