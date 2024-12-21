@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/colors.dart';
-import 'package:pulse/widgets/back_widget.dart';
 import 'package:pulse/data/order.dart';
 
 class OrderStatusScreen extends StatefulWidget {
@@ -16,18 +15,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: Stack(
+      appBar: AppBar(title: Text(Strings.orderStatus),),
+        body: SingleChildScrollView(
+          child: Column(
             children: [
-              BackWidget(name: Strings.orderStatus,),
               bodyWidget(context),
             ],
           ),
         ),
-      ),
     );
   }
   bodyWidget(BuildContext context) {

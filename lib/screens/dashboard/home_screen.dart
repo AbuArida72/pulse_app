@@ -4,8 +4,6 @@ import 'package:pulse/data/category.dart';
 import 'package:pulse/data/supplement.dart';
 import 'package:pulse/data/vitamin.dart';
 import 'package:pulse/screens/authentication/sign_in_screen.dart';
-import 'package:pulse/screens/drawer/prescription_upload_screen.dart';
-import 'package:pulse/screens/drawer/supplements_screen.dart';
 import 'package:pulse/screens/drawer/vitamins_screen.dart';
 import 'package:pulse/screens/medicine_screen.dart';
 import 'package:pulse/screens/profile_screen.dart';
@@ -16,9 +14,9 @@ import 'package:pulse/helpers/strings.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState();
 }
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   Widget build(BuildContext context) {
@@ -67,14 +65,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.black,
                   ),
                   title: Text(
-                    Strings.uploadPrescription,
+                    Strings.wallet,
                     style: CustomStyle.listStyle,
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                        PrescriptionUploadScreen
-                          ()));
+                    //Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                        //PrescriptionUploadScreen
+                          //()));
                   },
                 ),
                 Padding(
@@ -90,14 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.black,
                   ),
                   title: Text(
-                    Strings.supplements,
+                    Strings.invoices,
                     style: CustomStyle.listStyle,
                   ),
                   onTap: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                        SupplementsScreen
-                          ()));
+                    //Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                        //SupplementsScreen
+                          //()));
                   },
                 ),
                 Padding(
@@ -113,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: Colors.black,
                   ),
                   title: Text(
-                    Strings.helpSupport,
+                    Strings.contact,
                     style: CustomStyle.listStyle,
                   ),
                 ),

@@ -4,7 +4,6 @@ import 'package:pulse/helpers/custom_style.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/data/message.dart';
-import 'package:pulse/widgets/back_widget.dart';
 
 class MessagingScreen extends StatefulWidget {
 
@@ -20,19 +19,15 @@ class _MessagingScreenState extends State<MessagingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       //backgroundColor: CustomColor.primaryColor,
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: SafeArea(
-          child: Stack(
+      appBar: AppBar(title: Text(Strings.messageScreen)),
+      body: SingleChildScrollView(
+          child: Column(
             children: [
-              BackWidget(name: Strings.supportTeam,),
               bodyWidget(context),
               typeMessageWidget(context),
             ],
           ),
         ),
-      ),
     );
   }
 

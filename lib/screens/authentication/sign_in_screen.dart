@@ -3,7 +3,6 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/custom_style.dart';
-import 'package:pulse/widgets/back_widget.dart';
 import 'package:pulse/screens/main_dashboard.dart';
 import 'package:pulse/screens/authentication/sign_up_screen.dart';
 
@@ -18,27 +17,21 @@ class _SignInScreenState extends State<SignInScreen> {
   TextEditingController passwordController = TextEditingController();
   bool _toggleVisibility = true;
   bool checkedValue = false;
-  bool isLoading= false;
-  
+  bool isLoading = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CustomColor.secondary,
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: SafeArea(
-          child: Stack(
+      appBar: AppBar(title: Text(Strings.signIn),),
+      body: SingleChildScrollView(
+          child: Column(
             children: [
-              BackWidget(
-                name: Strings.signInAccount,
-              ),
               bodyWidget(context)
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   bodyWidget(BuildContext context) {
@@ -55,96 +48,39 @@ class _SignInScreenState extends State<SignInScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Material(
-                    elevation: 40.0,
-                    shadowColor: CustomColor.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    child: TextFormField(
-                      style: CustomStyle.textStyle,
-                      controller: emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return Strings.pleaseFillOutTheField;
-                        } else {
-                          return null;
-                        }
-                      },
-                      decoration: InputDecoration(
-                          hintText: Strings.typeEmail,
-                          contentPadding: EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 10.0),
-                          labelStyle: CustomStyle.textStyle,
-                          filled: true,
-                          fillColor: CustomColor.accent,
-                          hintStyle: CustomStyle.textStyle,
-                          focusedBorder: CustomStyle.focusBorder,
-                          enabledBorder: CustomStyle.focusErrorBorder,
-                          focusedErrorBorder: CustomStyle.focusErrorBorder,
-                          errorBorder: CustomStyle.focusErrorBorder,
-                          prefixIcon: Icon(
-                            Icons.mail,
-                            color: CustomColor.primary,
-                          )),
-                    ),
+                  CustomInput(
+                    controller: emailController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.emailAddress,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return Strings.invalidInput;
+                      } else {
+                        return null;
+                      }
+                    },
                   ),
                   SizedBox(
                     height: Dimensions.heightSize,
                   ),
-                  Material(
-                    elevation: 40.0,
-                    shadowColor: CustomColor.primary.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(30),
-                    child: TextFormField(
-                      style: CustomStyle.textStyle,
-                      controller: passwordController,
-                      validator: (value) {
-                        if (value!.isEmpty) {
-                          return Strings.pleaseFillOutTheField;
-                        } else {
-                          return null;
-                        }
-                      },
-                      decoration: InputDecoration(
-                        hintText: Strings.typePassword,
-                        contentPadding: EdgeInsets.symmetric(
-                            vertical: 10.0, horizontal: 10.0),
-                        labelStyle: CustomStyle.textStyle,
-                        focusedBorder: CustomStyle.focusBorder,
-                        enabledBorder: CustomStyle.focusErrorBorder,
-                        focusedErrorBorder: CustomStyle.focusErrorBorder,
-                        errorBorder: CustomStyle.focusErrorBorder,
-                        filled: true,
-                        fillColor: CustomColor.accent,
-                        hintStyle: CustomStyle.textStyle,
-                        prefixIcon: Icon(
-                          Icons.lock,
-                          color: CustomColor.primary,
-                        ),
-                        suffixIcon: IconButton(
-                          onPressed: () {
-                            setState(() {
-                              _toggleVisibility = !_toggleVisibility;
-                            });
-                          },
-                          icon: _toggleVisibility
-                              ? Icon(
-                                  Icons.visibility_off,
-                                  color: CustomColor.primary,
-                                )
-                              : Icon(
-                                  Icons.visibility,
-                                  color: CustomColor.primary,
-                                ),
-                        ),
-                      ),
-                      obscureText: _toggleVisibility,
-                    ),
-                  ),
-                  SizedBox(height: Dimensions.heightSize),
+                  CustomInput(
+                    controller: passwordController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.visiblePassword,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return Strings.invalidInput;
+                      } else {
+                        return null;
+                      }
+                    },
+                  )
                 ],
               ),
-            )),
+            )
+          ),
         SizedBox(height: Dimensions.heightSize * 2),
         Padding(
           padding: const EdgeInsets.only(
@@ -167,7 +103,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
             ),
-            onTap: () async {
+            onTap: () async {/*
               if (formKey.currentState!.validate()) {
                 setState(() {
                   isLoading = true;
@@ -191,7 +127,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     } else {
                       showMsg(
                         context,
-                        'Account Verification\nAccount should be verified.',
+                        'Account Verification\nPlease Verify Your Email',
                         showCancle: true,
                         oncancel: () {
                           FirebaseAuth.instance.signOut();
@@ -216,16 +152,15 @@ class _SignInScreenState extends State<SignInScreen> {
                     isLoading = false;
                   });
                 });
-              }
+              }*/
+              Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DashboardScreen(),
+                        ),
+                        (route) => false,
+                      );
             },
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize * 2),
-        Text(
-          Strings.orLoginWith,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: Dimensions.largeTextSize,
           ),
         ),
         SizedBox(height: Dimensions.heightSize * 2),
@@ -233,7 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              Strings.ifYouHaveNoAccount,
+              Strings.noAccount,
               style: CustomStyle.textStyle,
             ),
             GestureDetector(

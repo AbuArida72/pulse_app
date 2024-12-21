@@ -10,18 +10,17 @@ class Strings {
   static String title = 'PULSE';
   static String slogan = 'Medicine Delivery Made Easy';
 
+  //Sign In Screen & Sign Up Screen
   static String signIn = 'Sign In';
   static String createAnAccount = 'Create an account';
   static String signInAccount = 'Sign In';
   static String password = 'Password';
-  static String typeEmail = 'Type Email';
-  static String typePassword = 'Type Password';
-  static String pleaseFillOutTheField = 'Please Fill Out The Field';
+  static String type = 'default';
+  static String invalidInput = 'Invalid Input';
   static String forgotPassword = 'Forgot your password ?';
-  static String or = 'or';
   static String createAccount = 'Create Account';
-  static String rememberMe = 'Remember Me';
-  static String ifYouHaveNoAccount = 'If you have no an account ? ';
+  static String noAccount = 'Do you not have an account ? ';
+
   static String sendCode = 'Send Code';
   static String back = 'Back';
   static String email = 'Email';
@@ -49,6 +48,8 @@ class Strings {
   static String didntGetOtpCode = "Didn't get OTP code ? ";
   static String resend = 'Resend';
   static String ok = 'Ok';
+
+
   static String shopByCategory = 'Shop By Category';
   static String seeAll = 'See All';
   static String dealAndOffers = 'Deal & Offers';
@@ -59,7 +60,8 @@ class Strings {
   static String babyCare = 'Baby Care';
   static String logout = 'Logout';
   static String offerDiscounts = 'Offer & Discounts';
-  static String helpSupport = 'Help & Support';
+
+
   static String prescriptionRequired = 'Prescription Required';
   static String recommendMedicine = 'Recommend Medicine';
   static String total = 'Total';
@@ -92,7 +94,9 @@ class Strings {
   static String demoNumber = '0987 - 123 - 456';
   static String deliveryAddress = 'Delivery Address';
   static String change = 'Change';
-  static String uploadPrescription = 'Upload Prescription';
+
+
+  static String wallet = 'Wallet';
   static String productList = 'Product List';
   static String placeOrder = 'Place Order';
   static String selectPaymentMethod = 'Select Payment Method';
@@ -109,11 +113,18 @@ class Strings {
   static String expirationDate = 'Expiration Date';
   static String payNow = 'Pay Now';
   static String notification = 'Notification';
+
+
   static String myProfile = 'My Profile';
   static String emailAddress = 'Email Address';
   static String updateProfile = 'Update Profile';
   static String uploadNow = 'Upload Now';
-  static String supplements = 'Supplements';
+
+  static String messageScreen = 'Messages';
+
+  static String contact = 'Contact Us';
+
+  static String invoices = 'Invoices';
   static String giveReview = 'Give Review';
   static String support = 'Support';
   static String functionality = 'Functionality';

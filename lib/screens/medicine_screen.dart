@@ -3,7 +3,6 @@ import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/custom_style.dart';
 import 'package:pulse/helpers/colors.dart';
-import 'package:pulse/widgets/back_widget.dart';
 import 'package:pulse/data/supplement.dart';
 import 'package:pulse/widgets/add_quantity_widget.dart';
 
@@ -27,19 +26,15 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        child: SafeArea(
-          child: Stack(
+      appBar: AppBar(title: Text(Strings.medicineBag),),
+      body: SingleChildScrollView(
+          child: Column(
             children: [
-              BackWidget(name: widget.supplement?.name ?? "",),
               bodyWidget(context),
               addToCartWidget(context)
             ],
           ),
         ),
-      ),
     );
   }
   bodyWidget(BuildContext context) {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/colors.dart';
-import 'package:pulse/widgets/back_widget.dart';
 import 'package:pulse/data/order.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -19,12 +18,10 @@ class _CheckoutInformationScreenState extends State<CheckoutInformationScreen> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.white,
-        body: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          child: Stack(
+        appBar: AppBar(title: Text(Strings.checkOut),),
+        body: SingleChildScrollView(
+          child: Column(
             children: [
-              BackWidget(name: Strings.checkoutInformation,),
               bodyWidget(context),
               placeOrderWidget(context)
             ],
@@ -247,12 +244,6 @@ class _CheckoutInformationScreenState extends State<CheckoutInformationScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            Strings.uploadPrescription,
-            style: TextStyle(
-                fontSize: Dimensions.largeTextSize,
-            ),
-          ),
           Card(
             elevation: 2,
             child: Padding(

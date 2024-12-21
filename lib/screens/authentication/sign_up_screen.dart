@@ -3,8 +3,8 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/custom_style.dart';
+import 'package:pulse/screens/authentication/sign_in_screen.dart';
 import 'package:pulse/screens/welcome_screen.dart';
-import 'package:pulse/widgets/back_widget.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -19,6 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController usernameController = TextEditingController();
   TextEditingController cityController = TextEditingController();
   TextEditingController StreetController = TextEditingController();
+
   bool _toggleVisibility = true;
   bool checkedValue = false;
   bool isLoading = false;
@@ -54,11 +55,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 children: [
                   CustomInput(
                     controller: usernameController,
-                    hintText: Strings.typeEmail,
+                    hintText: Strings.type,
                     textInputType: TextInputType.text,
                     validator: (value) {
                       if (value == null || (!isText(value, isRequired: true))) {
-                        return 'Error Username';
+                        return Strings.invalidInput;
                       }
                       return null;
                     },
@@ -68,12 +69,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   CustomInput(
                     controller: emailController,
-                    hintText: Strings.typeEmail,
+                    hintText: Strings.type,
                     textInputType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null ||
                           (!isValidEmail(value, isRequired: true))) {
-                        return 'Error Email';
+                        return Strings.invalidInput;
                       }
                       return null;
                     },
@@ -83,18 +84,73 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   CustomInput(
                     controller: passwordController,
-                    hintText: Strings.typePassword,
+                    hintText: Strings.type,
                     textInputType: TextInputType.visiblePassword,
                     obscureText: true,
                     validator: (value) {
                       if (value == null ||
                           (!isValidPassword(value, isRequired: true))) {
-                        return 'Error Password';
+                        return Strings.invalidInput;
                       }
                       return null;
                     },
                   ),
-                  SizedBox(height: Dimensions.heightSize),
+                  SizedBox(
+                    height: Dimensions.heightSize,
+                  ),
+                  CustomInput(
+                    controller: mobileController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || (!isText(value, isRequired: true))) {
+                        return Strings.invalidInput;
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(
+                    height: Dimensions.heightSize,
+                  ),
+                  CustomInput(
+                    controller: StreetController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || (!isText(value, isRequired: true))) {
+                        return Strings.invalidInput;
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(
+                    height: Dimensions.heightSize,
+                  ),
+                  CustomInput(
+                    controller: cityController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || (!isText(value, isRequired: true))) {
+                        return Strings.invalidInput;
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(
+                    height: Dimensions.heightSize,
+                  ),
+                  CustomInput(
+                    controller: cityController,
+                    hintText: Strings.type,
+                    textInputType: TextInputType.text,
+                    validator: (value) {
+                      if (value == null || (!isText(value, isRequired: true))) {
+                        return Strings.invalidInput;
+                      }
+                      return null;
+                    },
+                  ),
                 ],
               ),
             )),
@@ -195,20 +251,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
         ),
         SizedBox(height: Dimensions.heightSize * 2),
-        Text(
-          Strings.orLoginWith,
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: Dimensions.largeTextSize,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize * 2),
         Column(
           mainAxisAlignment: MainAxisAlignment.end,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              "By clicking sign up you agree to the following ",
+              "By creating an account you agree to the following ",
               style: CustomStyle.textStyle,
             ),
             Row(
@@ -226,11 +274,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   onTap: () {
                     print('go to privacy url');
-                    // _showTermsConditions();
+                    //_showTermsConditions();
                   },
                 ),
                 Text(
-                  " with out reservation",
+                  " without reservation",
                   style: CustomStyle.textStyle,
                 ),
               ],
@@ -252,8 +300,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     color: CustomColor.primary, fontWeight: FontWeight.bold),
               ),
               onTap: () {
-                /*Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                  SignInScreen()));*/
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
+                  SignInScreen()));
               },
             )
           ],

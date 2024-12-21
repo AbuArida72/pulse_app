@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:pulse/screens/dashboard/filter_screen.dart';
 import 'package:pulse/screens/dashboard/home_screen.dart';
 import 'package:pulse/screens/dashboard/medicine_bag_screen.dart';
 import 'package:pulse/screens/dashboard/my_order_screen.dart';
@@ -119,7 +118,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 0:
         return HomeScreen();
       case 1:
-        return FilterScreen();
+        //return FilterScreen();
       case 2:
         return MedicineBagScreen();
       case 3:

@@ -35,20 +35,7 @@ class _IntroScreenState extends State<IntroScreen> {
                     child: Text(
                       Strings.title,
                       style: TextStyle(
-                          fontSize: Dimensions.extraLargeTextSize * 1.5,
-                          color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  SizedBox(height: Dimensions.heightSize),
-                  Padding(
-                    padding: const EdgeInsets.only(left: Dimensions.marginSize * 2, right: Dimensions
-                        .marginSize * 2),
-                    child: Text(
-                      Strings.slogan,
-                      style: TextStyle(
-                          fontSize: Dimensions.largeTextSize,
+                          fontSize: Dimensions.extraLargeTextSize * 3,
                           color: Colors.black,
                       ),
                       textAlign: TextAlign.center,

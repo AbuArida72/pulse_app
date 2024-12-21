@@ -58,7 +58,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                 controller: numberController,
                 validator: (value){
                   if(value!.isEmpty){
-                    return Strings.pleaseFillOutTheField;
+                    return Strings.invalidInput;
                   }else{
                     return null;
                   }
@@ -87,7 +87,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                 controller: nameController,
                 validator: (value){
                   if(value!.isEmpty){
-                    return Strings.pleaseFillOutTheField;
+                    return Strings.invalidInput;
                   }else{
                     return null;
                   }
@@ -161,7 +161,7 @@ class _AddCardBottomSheetState extends State<AddCardBottomSheet> {
                           controller: cvvController,
                           validator: (value){
                             if(value!.isEmpty){
-                              return Strings.pleaseFillOutTheField;
+                              return Strings.invalidInput;
                             }else{
                               return null;
                             }
