@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
@@ -12,21 +11,84 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController mobileController = TextEditingController();
-  TextEditingController usernameController = TextEditingController();
-  TextEditingController streetController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController streetController = TextEditingController();
   String? selectedCity;
   String? documentPath;
   bool _obscurePassword = true;
 
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   Future<void> pickDocument() async {
-    // Code for picking a document goes here
+    // Simulate document picking
     setState(() {
       documentPath = "path/to/selected/document";
     });
   }
+
+  Future<void> registerUser() async {
+  if (formKey.currentState!.validate()) {
+    try {
+      // Create user with email and password
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // Send email verification
+      await userCredential.user!.sendEmailVerification();
+
+      // Get the current timestamp
+      Timestamp currentTimestamp = Timestamp.now();
+
+      // Save user details in Firestore
+      await _firestore.collection('users').doc(userCredential.user!.uid).set({
+        'cardCVV': '',
+        'cardEx': '',
+        'cardNum': '',
+        'city': selectedCity,
+        'commercial_register': documentPath ?? '',
+        'createdDtm': currentTimestamp,
+        'email': emailController.text.trim(),
+        'lastLoginTime': currentTimestamp,
+        'phone': mobileController.text.trim(),
+        'picture': 'https://firebasestorage.googleapis.com/v0/b/pulse-provider-app.appspot.com/o/default-avatar.png',
+        'status': 0, 
+        'street': streetController.text.trim(),
+        'username': usernameController.text.trim(),
+      });
+
+      // Show popup to verify email
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Verify Your Email'),
+          content: Text('A verification email has been sent to your email address. Please check your inbox and verify your account.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => SignInScreen()),
+                ); // Navigate to sign-in screen
+              },
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${e.toString()}')),
+      );
+    }
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -111,11 +173,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ),
                         ),
                       ),
-                      onTap: () async {
-                        if (formKey.currentState!.validate()) {
-                          // Firebase registration logic remains unchanged
-                        }
-                      },
+                      onTap: registerUser,
                     ),
                   ],
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:pulse/screens/checkout_screen.dart';
+import 'package:pulse/helpers/colors.dart';
+import 'package:pulse/screens/order/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   @override
@@ -58,7 +59,7 @@ class CartScreen extends StatelessWidget {
               child: Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white, backgroundColor: Colors.red,
+                    foregroundColor: Colors.white, backgroundColor: CustomColor.primary,
                     padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                     textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),

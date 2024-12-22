@@ -1,8 +1,11 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
-import 'package:pulse/screens/main_dashboard.dart';
+import 'package:pulse/screens/authentication/forget_pass.dart';
+import 'package:pulse/screens/dashboard.dart';
 import 'package:pulse/screens/authentication/sign_up_screen.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -12,9 +15,65 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   bool _obscurePassword = true;
+
+  Future<void> signIn() async {
+    if (formKey.currentState!.validate()) {
+      try {
+        // Authenticate the user with email and password
+        UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        User? user = userCredential.user;
+
+        if (user != null) {
+          // Fetch the user details from Firestore
+          DocumentSnapshot userDoc = await _firestore.collection('users').doc(user.uid).get();
+
+          if (userDoc.exists) {
+            final userData = userDoc.data() as Map<String, dynamic>;
+            if (userData['status'] == 2) {
+              // Navigate to the main dashboard if the status is 3
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => DashboardScreen()),
+              );
+            } else {
+              // Show a message if the status is not 3
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Account Under Review'),
+                  content: Text(
+                      'Your account is still under review. Please wait, and you will receive an email once your account is approved.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('OK'),
+                    ),
+                  ],
+                ),
+              );
+            }
+          } else {
+            // User record not found in Firestore
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('No user record found in the database.')),
+            );
+          }
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +124,7 @@ class _SignInScreenState extends State<SignInScreen> {
     );
   }
 
-  bodyWidget(BuildContext context) {
+  Widget bodyWidget(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -173,18 +232,19 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
               ),
             ),
-            onTap: () async {
-              /*
-              Firebase authentication code remains unchanged
-              */
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => DashboardScreen(),
-                ),
-                (route) => false,
-              );
-            },
+            onTap: signIn,
+          ),
+        ),
+        SizedBox(height: Dimensions.heightSize),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) => ForgotPasswordScreen()),
+            );
+          },
+          child: Text(
+            'Forgot Password?',
+            style: TextStyle(color: CustomColor.primary, fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(height: Dimensions.heightSize * 2),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:pulse/screens/payment_method/payment-method.dart';
 
 class AddCardScreen extends StatefulWidget {
   @override
@@ -6,11 +9,40 @@ class AddCardScreen extends StatefulWidget {
 }
 
 class _AddCardScreenState extends State<AddCardScreen> {
-  String? savedCard;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _cardNumberController = TextEditingController();
   final TextEditingController _expiryDateController = TextEditingController();
   final TextEditingController _cvvController = TextEditingController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Future<void> saveCardToFirebase() async {
+    try {
+      final user = _auth.currentUser;
+
+      if (user != null) {
+        await _firestore.collection('users').doc(user.uid).update({
+          'cardNum': _cardNumberController.text,
+          'cardEx': _expiryDateController.text,
+          'cardCVV': _cvvController.text,
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Card saved successfully!')),
+        );
+
+        // Navigate back to the Payment Method Screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => PaymentMethodScreen()),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to save card: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +63,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your card number';
+                  }
+                  if (value.length < 16) {
+                    return 'Card number must be 16 digits';
                   }
                   return null;
                 },
@@ -55,6 +90,9 @@ class _AddCardScreenState extends State<AddCardScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the CVV';
                   }
+                  if (value.length != 3) {
+                    return 'CVV must be 3 digits';
+                  }
                   return null;
                 },
               ),
@@ -62,14 +100,7 @@ class _AddCardScreenState extends State<AddCardScreen> {
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // Save payment method logic
-                    setState(() {
-                      // Assuming we save the last 4 digits of the card
-                      savedCard = '**** **** **** ' +
-                          _cardNumberController.text.substring(
-                              _cardNumberController.text.length - 4);
-                    });
-                    Navigator.pop(context);
+                    saveCardToFirebase();
                   }
                 },
                 child: Text('Save Card'),
