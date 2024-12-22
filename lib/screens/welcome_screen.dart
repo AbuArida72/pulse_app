@@ -9,11 +9,13 @@ class IntroScreen extends StatefulWidget {
   @override
   _IntroScreenState createState() => _IntroScreenState();
 }
+
 class _IntroScreenState extends State<IntroScreen> {
   @override
   void initState() {
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,37 +23,54 @@ class _IntroScreenState extends State<IntroScreen> {
         height: MediaQuery.of(context).size.height,
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-            color: CustomColor.secondary
+          gradient: LinearGradient(
+            colors: [CustomColor.primary.withOpacity(0.8), CustomColor.secondary],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
         child: SafeArea(
           child: Stack(
             children: [
               Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  SizedBox(height: Dimensions.heightSize * 7),
                   Padding(
-                    padding: const EdgeInsets.only(left: Dimensions.marginSize * 2, right: Dimensions
-                        .marginSize * 2),
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.marginSize * 2),
                     child: Text(
                       Strings.title,
                       style: TextStyle(
-                          fontSize: Dimensions.extraLargeTextSize * 3,
-                          color: Colors.black,
+                        fontSize: Dimensions.extraLargeTextSize * 3,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(0, 2),
+                            blurRadius: 4,
+                            color: Colors.black45,
+                          ),
+                        ],
                       ),
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  SizedBox(height: Dimensions.heightSize * 6,),
+                  SizedBox(height: Dimensions.heightSize * 8),
                   Padding(
-                    padding: const EdgeInsets.only(left: Dimensions.marginSize * 2, right: Dimensions
-                        .marginSize * 2),
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.marginSize * 2),
                     child: GestureDetector(
                       child: Container(
                         height: Dimensions.buttonHeight,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
-                            color: CustomColor.primary,
-                            borderRadius: BorderRadius.circular(Dimensions.radius * 3)
+                          color: CustomColor.primary,
+                          borderRadius: BorderRadius.circular(Dimensions.radius * 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 6,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
                         ),
                         child: Center(
                           child: Text(
@@ -59,44 +78,49 @@ class _IntroScreenState extends State<IntroScreen> {
                             style: TextStyle(
                               fontSize: Dimensions.largeTextSize,
                               color: Colors.white,
+                              fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                       onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignUpScreen
-                          ()));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignUpScreen()));
                       },
                     ),
                   ),
-                  SizedBox(height: Dimensions.heightSize,),
+                  SizedBox(height: Dimensions.heightSize * 2),
                   Padding(
-                    padding: const EdgeInsets.only(left: Dimensions.marginSize * 2, right: Dimensions
-                        .marginSize * 2),
+                    padding: const EdgeInsets.symmetric(horizontal: Dimensions.marginSize * 2),
                     child: GestureDetector(
                       child: Container(
                         height: Dimensions.buttonHeight,
                         width: MediaQuery.of(context).size.width,
                         decoration: BoxDecoration(
-                            color: CustomColor.primary.withOpacity(0.5),
-                            borderRadius: BorderRadius.circular(Dimensions.radius * 3)
+                          color: CustomColor.secondary.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(Dimensions.radius * 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black26,
+                              blurRadius: 6,
+                              offset: Offset(0, 3),
+                            ),
+                          ],
                         ),
                         child: Center(
                           child: Text(
                             Strings.signIn.toUpperCase(),
                             style: TextStyle(
-                                fontSize: Dimensions.largeTextSize,
-                                color: Colors.black,
+                              fontSize: Dimensions.largeTextSize,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ),
                       ),
                       onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) =>
-                            SignInScreen
-                          ()));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignInScreen()));
                       },
                     ),
                   ),
@@ -112,7 +136,7 @@ class _IntroScreenState extends State<IntroScreen> {
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.cover,
                 ),
-              )
+              ),
             ],
           ),
         ),
