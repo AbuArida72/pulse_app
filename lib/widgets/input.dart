@@ -1,8 +1,8 @@
 import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/custom_style.dart';
-import 'package:pulse/helpers/strings.dart';
 
+// ignore: must_be_immutable
 class CustomInput extends StatelessWidget {
   CustomInput({
     Key? key,

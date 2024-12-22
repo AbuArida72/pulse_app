@@ -4,7 +4,7 @@ import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/helpers/colors.dart';
 
 class OrderStatusScreen extends StatefulWidget {
-  final dynamic? product;
+  final dynamic product;
   const OrderStatusScreen({Key? key, this.product}) : super(key: key);
   @override
   _OrderStatusScreenState createState() => _OrderStatusScreenState();

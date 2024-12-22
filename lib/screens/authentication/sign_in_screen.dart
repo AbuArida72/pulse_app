@@ -2,7 +2,6 @@ import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
-import 'package:pulse/helpers/custom_style.dart';
 import 'package:pulse/screens/main_dashboard.dart';
 import 'package:pulse/screens/authentication/sign_up_screen.dart';
 

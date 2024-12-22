@@ -131,7 +131,7 @@ class _IntroScreenState extends State<IntroScreen> {
                 right: -10,
                 left: -10,
                 child: Image.asset(
-                  'assets/images/onboard/sub.png',
+                  'assets/images/sub.png',
                   height: 200,
                   width: MediaQuery.of(context).size.width,
                   fit: BoxFit.cover,

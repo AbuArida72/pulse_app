@@ -3,9 +3,7 @@ import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
-import 'package:pulse/helpers/custom_style.dart';
 import 'package:pulse/screens/authentication/sign_in_screen.dart';
-import 'package:pulse/screens/welcome_screen.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
