@@ -38,7 +38,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
           if (userDoc.exists) {
             final userData = userDoc.data() as Map<String, dynamic>;
-            if (userData['status'] == 2) {
+            if (userData['status'] == 3) {
               // Navigate to the main dashboard if the status is 3
               Navigator.of(context).pushReplacement(
                 MaterialPageRoute(builder: (context) => DashboardScreen()),

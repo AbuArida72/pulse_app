@@ -5,7 +5,7 @@ import 'package:pulse/screens/contact_us.dart';
 import 'package:pulse/screens/drug.dart';
 import 'package:pulse/screens/order/cart.dart';
 import 'package:pulse/screens/invoices_screen.dart';
-import 'package:pulse/screens/order/order_screen.dart';
+import 'package:pulse/screens/order/orders_screen.dart';
 import 'package:pulse/screens/payment_method/payment-method.dart';
 import 'package:pulse/screens/profile_screen.dart';
 import 'package:pulse/screens/search.dart';

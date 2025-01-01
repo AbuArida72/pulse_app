@@ -1,347 +1,197 @@
 import 'package:flutter/material.dart';
-import 'package:pulse/helpers/dimensions.dart';
-import 'package:pulse/helpers/strings.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pulse/helpers/colors.dart';
 
-class OrderStatusScreen extends StatefulWidget {
-  final dynamic product;
-  const OrderStatusScreen({Key? key, this.product}) : super(key: key);
-  @override
-  _OrderStatusScreenState createState() => _OrderStatusScreenState();
-}
+class OrderStatusScreen extends StatelessWidget {
+  final String orderId; // Receive the order ID from navigation arguments
 
-class _OrderStatusScreenState extends State<OrderStatusScreen> {
+  OrderStatusScreen({required this.orderId});
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
-          Strings.orderStatus,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: CustomColor.primary,
+        title: Text('Order Status'),
         centerTitle: true,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: Dimensions.marginSize),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: Dimensions.heightSize * 2),
-              buildHeader(),
-              SizedBox(height: Dimensions.heightSize * 2),
-              statusWidget(context),
-              SizedBox(height: Dimensions.heightSize * 2),
-              orderTimelineWidget(context),
-              SizedBox(height: Dimensions.heightSize * 2),
-              productWidget(context),
-              SizedBox(height: Dimensions.heightSize * 2),
-              orderSummaryWidget(context),
-              SizedBox(height: Dimensions.heightSize * 2),
-              paymentStatusWidget(context),
-            ],
-          ),
+        backgroundColor: CustomColor.primary,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Go back to the previous screen
+          },
         ),
       ),
-    );
-  }
+      body: FutureBuilder<DocumentSnapshot>(
+        future: _firestore.collection('orders').doc(orderId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+            return Center(child: Text('Failed to fetch order details.'));
+          }
 
-  Widget buildHeader() {
-    return Center(
-      child: Column(
-        children: [
-          Icon(
-            Icons.local_shipping,
-            color: CustomColor.primary,
-            size: 50,
-          ),
-          SizedBox(height: Dimensions.heightSize * 0.5),
-          Text(
-            "Track your order",
-            style: TextStyle(
-              fontSize: Dimensions.largeTextSize,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: Dimensions.heightSize * 0.5),
-          Text(
-            "Order #12345",
-            style: TextStyle(
-              fontSize: Dimensions.defaultTextSize,
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+          final orderData = snapshot.data!.data() as Map<String, dynamic>;
 
-  Widget statusWidget(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        buildStatusStep("Pending", true),
-        buildDivider(),
-        buildStatusStep("Processing", true),
-        buildDivider(),
-        buildStatusStep("Shipped", false),
-        buildDivider(),
-        buildStatusStep("Delivered", false),
-      ],
-    );
-  }
+          // Handle status
+          final String status = orderData['status'] ?? 'Unknown';
+          String message;
+          IconData statusIcon;
+          LinearGradient gradient;
 
-  Widget buildStatusStep(String title, bool isActive) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 15,
-          backgroundColor: isActive ? CustomColor.primary : Colors.grey.shade300,
-          child: Icon(
-            Icons.check,
-            color: isActive ? Colors.white : Colors.grey.shade600,
-            size: 16,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize * 0.5),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: Dimensions.smallTextSize,
-            color: isActive ? Colors.black : Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
+          if (status == 'In Progress') {
+            message = "The order is being serviced now.";
+            statusIcon = Icons.local_shipping; // Icon for "In Progress" status
+            gradient = LinearGradient(
+              colors: [Colors.green, Colors.greenAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            );
+          } else if (status == 'Pending') {
+            message = "The order is still pending approval.";
+            statusIcon = Icons.hourglass_empty;
+            gradient = LinearGradient(
+              colors: [CustomColor.primary, Colors.blueAccent],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            );
+          } else {
+            message = "Unknown order status.";
+            statusIcon = Icons.error_outline;
+            gradient = LinearGradient(
+              colors: [Colors.grey, Colors.grey.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            );
+          }
 
-  Widget buildDivider() {
-    return Container(
-      height: 2,
-      width: 30,
-      color: Colors.grey.shade300,
-    );
-  }
+          // Extract the products array and calculate total price
+          List<dynamic> products = orderData['products'] ?? [];
+          double totalPrice = 0.0;
 
-  Widget orderTimelineWidget(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          Strings.orderTimeline,
-          style: TextStyle(
-            fontSize: Dimensions.largeTextSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize),
-        buildTimelineEntry("31 Jan", "12:30 PM", Strings.shipped),
-        buildTimelineEntry("28 Jan", "10:00 AM", Strings.picked),
-        buildTimelineEntry("26 Jan", "08:00 AM", Strings.processing),
-        buildTimelineEntry("23 Jan", "06:00 PM", Strings.confirmed),
-      ],
-    );
-  }
+          // Calculate the total price of all items
+          for (var item in products) {
+            double price = double.tryParse(item['price'].toString()) ?? 0.0;
+            int quantity = item['quantity'] ?? 0;
+            totalPrice += price * quantity;
+          }
 
-  Widget buildTimelineEntry(String date, String time, String status) {
-    return Row(
-      children: [
-        Column(
-          children: [
-            Icon(
-              Icons.circle,
-              size: 10,
-              color: CustomColor.primary,
-            ),
-            Container(
-              height: 50,
-              width: 2,
-              color: Colors.grey.shade300,
-            ),
-          ],
-        ),
-        SizedBox(width: Dimensions.widthSize),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              date,
-              style: TextStyle(
-                fontSize: Dimensions.smallTextSize,
-                color: Colors.grey,
-              ),
-            ),
-            Text(
-              time,
-              style: TextStyle(
-                fontSize: Dimensions.smallTextSize,
-                color: Colors.grey,
-              ),
-            ),
-            Text(
-              status,
-              style: TextStyle(
-                fontSize: Dimensions.defaultTextSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget productWidget(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          Strings.product,
-          style: TextStyle(
-            fontSize: Dimensions.largeTextSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize),
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Dimensions.radius),
-          ),
-          elevation: 3,
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: CustomColor.secondary,
-              backgroundImage: widget.product?.image != null
-                  ? AssetImage(widget.product.image)
-                  : null,
-            ),
-            title: Text(
-              widget.product?.name ?? "Product Name",
-              style: TextStyle(
-                fontSize: Dimensions.defaultTextSize,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            subtitle: Text(
-              "USD ${widget.product?.newPrice ?? "0.00"}",
-              style: TextStyle(
-                fontSize: Dimensions.smallTextSize,
-                color: CustomColor.primary,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget orderSummaryWidget(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          Strings.orderSummery,
-          style: TextStyle(
-            fontSize: Dimensions.largeTextSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize),
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Dimensions.radius),
-          ),
-          elevation: 3,
-          child: Padding(
+          return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                buildSummaryRow(Strings.subTotal, "\$235"),
-                buildSummaryRow(Strings.deliveryCharge, "\$15"),
-                Divider(color: Colors.grey),
-                buildSummaryRow(Strings.total, "\$250", isBold: true),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget buildSummaryRow(String label, String value, {bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: Dimensions.defaultTextSize,
-              color: Colors.grey,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: Dimensions.defaultTextSize,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: Colors.black,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget paymentStatusWidget(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          Strings.paymentStatus,
-          style: TextStyle(
-            fontSize: Dimensions.largeTextSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: Dimensions.heightSize),
-        Card(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Dimensions.radius),
-          ),
-          elevation: 3,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  Strings.paid,
-                  style: TextStyle(
-                    fontSize: Dimensions.defaultTextSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    gradient: gradient, // Set the gradient based on status
+                    borderRadius: BorderRadius.circular(15.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 5,
+                        blurRadius: 15,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        statusIcon,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 20),
+                      Text(
+                        'Order ID: $orderId',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      SizedBox(height: 10),
+                      Text(
+                        message,
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20),
+                // Items List Widget
+                Expanded(child: OrderItemsList(products: products)),
+                // Display the total price
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Total Price:',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        '\$${totalPrice.toStringAsFixed(2)}',
+                        style: TextStyle(fontSize: 18, color: CustomColor.primary),
+                      ),
+                    ],
+                  ),
+                ),
+                Spacer(),
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: CustomColor.primary,
+                      padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                      textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context); // Navigate back to the orders screen
+                    },
+                    child: Text('Back to Orders'),
                   ),
                 ),
               ],
             ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class OrderItemsList extends StatelessWidget {
+  final List<dynamic> products;
+
+  const OrderItemsList({required this.products});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: products.length,
+      itemBuilder: (context, index) {
+        final product = products[index];
+        final productName = product['name'] ?? 'Unknown Product';
+        final price = double.tryParse(product['price'].toString()) ?? 0.0;
+        final quantity = product['quantity'] ?? 0;
+
+        return Card(
+          margin: EdgeInsets.symmetric(vertical: 8.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-      ],
+          elevation: 5,
+          child: ListTile(
+            contentPadding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            title: Text(productName, style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text('Qty: $quantity'),
+            trailing: Text('\$${(price * quantity).toStringAsFixed(2)}'),
+          ),
+        );
+      },
     );
   }
 }

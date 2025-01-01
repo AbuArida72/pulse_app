@@ -4,36 +4,60 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 
 class DrugDetailsPage extends StatelessWidget {
-  final String productId; // ID of the drug document in Firestore
+  final String productId; // Document ID of the product in Firestore
 
   DrugDetailsPage({required this.productId});
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<void> addToCart(BuildContext context, Map<String, dynamic> productData) async {
+  Future<void> addToCart(BuildContext context, Map<String, dynamic> productData, String userId) async {
     try {
-      // Add drug details to the cart collection
-      await _firestore.collection('cart').add({
-        'productId': productId,
-        'title': productData['title'],
-        'price': productData['price'],
-        'quantity': 1, // Default quantity
-        'image': productData['images'],
-      });
+      final cartRef = _firestore.collection('carts').doc(userId);
 
-      // Show confirmation dialog
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Success'),
-          content: Text('${productData['title']} has been added to your cart.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context), // Close the dialog
-              child: Text('OK'),
-            ),
+      // Fetch the current cart data
+      final cartDoc = await cartRef.get();
+
+      if (cartDoc.exists) {
+        final cartData = cartDoc.data() as Map<String, dynamic>;
+        final items = List<Map<String, dynamic>>.from(cartData['items'] ?? []);
+
+        // Check if the product already exists in the cart
+        final existingItemIndex = items.indexWhere((item) => item['productId'] == productId);
+
+        if (existingItemIndex != -1) {
+          items[existingItemIndex]['quantity'] += 1;
+        } else {
+          items.add({
+            'productId': productId, // Use document ID as productId
+            'name': productData['title'],
+            'price': double.parse(productData['price']),
+            'quantity': 1,
+            'image': productData['images'],
+          });
+        }
+
+        // Update the cart in Firebase
+        await cartRef.update({'items': items, 'updatedAt': DateTime.now()});
+      } else {
+        // Create a new cart document
+        await cartRef.set({
+          'userId': userId,
+          'items': [
+            {
+              'productId': productId, // Use document ID as productId
+              'name': productData['title'],
+              'price': double.parse(productData['price']),
+              'quantity': 1,
+              'image': productData['images'],
+            },
           ],
-        ),
+          'createdAt': DateTime.now(),
+          'updatedAt': DateTime.now(),
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${productData['title']} has been added to your cart.')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,16 +68,12 @@ class DrugDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String userId = "user123"; // Replace with dynamic user ID from authentication
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Drug Details'),
         backgroundColor: CustomColor.primary,
-        iconTheme: IconThemeData(color: Colors.white), // White back arrow
-        titleTextStyle: TextStyle(
-          color: Colors.white, // White title
-          fontSize: Dimensions.largeTextSize,
-          fontWeight: FontWeight.bold,
-        ),
       ),
       body: FutureBuilder<DocumentSnapshot>(
         future: _firestore.collection('products').doc(productId).get(),
@@ -77,7 +97,8 @@ class DrugDetailsPage extends StatelessWidget {
                   child: Image.network(
                     productData['images'] ?? '',
                     height: 200,
-                    errorBuilder: (context, error, stackTrace) => Icon(Icons.image_not_supported, size: 200),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(Icons.image_not_supported, size: 200),
                   ),
                 ),
                 SizedBox(height: Dimensions.heightSize * 2),
@@ -93,11 +114,12 @@ class DrugDetailsPage extends StatelessWidget {
                 SizedBox(height: Dimensions.heightSize * 2),
                 Text(
                   '\$${productData['price'] ?? '0.00'}',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: CustomColor.primary),
+                  style: TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold, color: CustomColor.primary),
                 ),
                 Spacer(),
                 ElevatedButton(
-                  onPressed: () => addToCart(context, productData),
+                  onPressed: () => addToCart(context, productData, userId),
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: CustomColor.primary,
