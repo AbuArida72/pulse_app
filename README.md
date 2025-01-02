@@ -2,7 +2,7 @@
 
 PULSE is a Flutter-based application designed to streamline drug management and user interaction. This project is integrated with Firebase for backend services, making it a robust solution for managing drugs, orders, and user profiles.
 
-##Features
+## Features
 
 Drug Management: Display, search, and filter drugs with advanced query capabilities.
 
