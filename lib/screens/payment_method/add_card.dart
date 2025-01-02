@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:pulse/screens/payment_method/payment-method.dart';
@@ -56,36 +57,54 @@ class _AddCardScreenState extends State<AddCardScreen> {
           key: _formKey,
           child: Column(
             children: [
+              // Card Number Field
               TextFormField(
                 controller: _cardNumberController,
                 decoration: InputDecoration(labelText: 'Card Number'),
                 keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(16),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your card number';
                   }
-                  if (value.length < 16) {
+                  if (value.length != 16) {
                     return 'Card number must be 16 digits';
                   }
                   return null;
                 },
               ),
+              // Expiry Date Field
               TextFormField(
                 controller: _expiryDateController,
-                decoration: InputDecoration(labelText: 'Expiry Date (MM/YY)'),
-                keyboardType: TextInputType.datetime,
+                decoration: InputDecoration(labelText: 'Expiry Date (MMYY)'),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(4),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the expiry date';
                   }
+                  if (value.length != 4) {
+                    return 'Expiry date must be 4 digits (MMYY)';
+                  }
                   return null;
                 },
               ),
+              // CVV Field
               TextFormField(
                 controller: _cvvController,
                 decoration: InputDecoration(labelText: 'CVV'),
                 keyboardType: TextInputType.number,
                 obscureText: true,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(3),
+                ],
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the CVV';

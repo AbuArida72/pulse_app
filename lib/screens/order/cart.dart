@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pulse/helpers/colors.dart';
@@ -5,10 +6,25 @@ import 'package:pulse/screens/order/checkout_screen.dart';
 
 class CartScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
-    final String userId = "user123"; // Replace with dynamic user ID from authentication
+    final User? user = _auth.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('Cart'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Text('User not logged in. Please log in to access your cart.'),
+        ),
+      );
+    }
+
+    final String userId = user.uid;
 
     return Scaffold(
       appBar: AppBar(
@@ -85,7 +101,7 @@ class CartScreen extends StatelessWidget {
                         final int quantity = item['quantity'] ?? 0;
 
                         return ListTile(
-                          title: Text(item['name'] ?? 'Unknown Product'),
+                          title: Text(item['name']),
                           subtitle: Text('Qty: $quantity'),
                           trailing: Text(
                               '\$${(price * quantity).toStringAsFixed(2)}'),
@@ -109,7 +125,7 @@ class CartScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CheckoutScreen(userId: userId),
+                            builder: (context) => CheckoutScreen(user_id: userId),
                           ),
                         );
                       },

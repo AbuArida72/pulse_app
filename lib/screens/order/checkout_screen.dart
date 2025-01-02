@@ -4,37 +4,45 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/screens/order/orders_screen.dart';
 
 class CheckoutScreen extends StatelessWidget {
-  final String userId;
+  final String user_id;
 
-  CheckoutScreen({required this.userId});
+  CheckoutScreen({required this.user_id});
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> placeOrder(BuildContext context, List<Map<String, dynamic>> cartItems) async {
     try {
-      final orderRef = _firestore.collection('orders').doc();
+      final List<Map<String, dynamic>> products = [];
       final DateTime now = DateTime.now();
 
-      // Calculate total price
-      double totalPrice = cartItems.fold(
-        0,
-        (sum, item) =>
-            sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['quantity'] ?? 0)),
-      );
+      // Fetch the product status for each item in the cart
+      for (var item in cartItems) {
+        final String productId = item['productId'] as String;
+        final int cartQuantity = item['quantity'] as int;
 
-      // Create order in Firebase
+        // Fetch the product document from Firestore
+        final productDoc = await _firestore.collection('products').doc(productId).get();
+        if (productDoc.exists) {
+          products.add({
+            'product': productId,
+            'quantity': cartQuantity,
+            'status': 0, // Default status
+          });
+        }
+      }
+
+      // Save the order with the transformed products array
+      final orderRef = _firestore.collection('orders').doc();
       await orderRef.set({
-        'userId': userId,
-        'products': cartItems,
-        'totalPrice': totalPrice,
-        'status': 'Pending',
         'date': now,
-        'createdAt': now,
-        'updatedAt': now,
+        'products': products,
+        'status': [],
+        'updatedDtm': now,
+        'user_id': user_id,
       });
 
-      // Clear cart
-      await _firestore.collection('carts').doc(userId).update({'items': []});
+      // Clear the user's cart
+      await _firestore.collection('carts').doc(user_id).update({'items': []});
 
       // Show confirmation dialog
       showDialog(
@@ -45,7 +53,7 @@ class CheckoutScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(context); // Close the dialog
+                Navigator.pop(context);
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => MyOrderScreen()),
@@ -63,6 +71,14 @@ class CheckoutScreen extends StatelessWidget {
     }
   }
 
+  Future<Map<String, dynamic>?> fetchUserData() async {
+    final userDoc = await _firestore.collection('users').doc(user_id).get();
+    if (userDoc.exists) {
+      return userDoc.data();
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,143 +86,154 @@ class CheckoutScreen extends StatelessWidget {
         title: Text('Checkout'),
         centerTitle: true,
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: _firestore.collection('carts').doc(userId).snapshots(),
-        builder: (context, snapshot) {
-          // Handle loading state
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: FutureBuilder<Map<String, dynamic>?>(
+        future: fetchUserData(),
+        builder: (context, userSnapshot) {
+          if (userSnapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           }
 
-          // Handle errors
-          if (snapshot.hasError) {
-            return Center(child: Text('An error occurred. Please try again.'));
+          if (userSnapshot.hasError || userSnapshot.data == null) {
+            return Center(child: Text('Failed to load user details.'));
           }
 
-          // Check if cart data exists
-          if (!snapshot.hasData || snapshot.data?.data() == null) {
-            return Center(child: Text('Your cart is empty.'));
-          }
+          final userData = userSnapshot.data!;
+          final deliveryAddress = userData['street'] ?? 'Unknown Address';
+          final contactNumber = userData['phone'] ?? 'Unknown Number';
 
-          final cartData = snapshot.data!.data() as Map<String, dynamic>?;
-          final List<Map<String, dynamic>> cartItems =
-              List<Map<String, dynamic>>.from(cartData?['items'] ?? []);
+          return StreamBuilder<DocumentSnapshot>(
+            stream: _firestore.collection('carts').doc(user_id).snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              }
 
-          // Check if cart is empty
-          if (cartItems.isEmpty) {
-            return Center(child: Text('Your cart is empty.'));
-          }
+              if (snapshot.hasError || !snapshot.hasData || snapshot.data?.data() == null) {
+                return Center(child: Text('Your cart is empty.'));
+              }
 
-          // Calculate total price
-          double totalPrice = cartItems.fold(
-            0,
-            (sum, item) =>
-                sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['quantity'] ?? 0)),
-          );
+              final cartData = snapshot.data!.data() as Map<String, dynamic>?;
+              final List<Map<String, dynamic>> cartItems =
+                  List<Map<String, dynamic>>.from(cartData?['items'] ?? []);
 
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  padding: const EdgeInsets.all(16.0),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 3,
-                        blurRadius: 7,
-                        offset: Offset(0, 3),
+              if (cartItems.isEmpty) {
+                return Center(child: Text('Your cart is empty.'));
+              }
+
+              double totalPrice = cartItems.fold(
+                0,
+                (sum, item) =>
+                    sum + ((double.tryParse(item['price'].toString()) ?? 0.0) * (item['quantity'] ?? 0)),
+              );
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16.0),
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 7,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Delivery Address:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('123 Main Street, Springfield', style: TextStyle(fontSize: 16)),
-                      SizedBox(height: 10),
-                      Text('Contact Number:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('+123 456 7890', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16.0),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10.0),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 3,
-                        blurRadius: 7,
-                        offset: Offset(0, 3),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Delivery Address:',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(deliveryAddress, style: TextStyle(fontSize: 16)),
+                          SizedBox(height: 10),
+                          Text('Contact Number:',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text(contactNumber, style: TextStyle(fontSize: 16)),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Order Review', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 10),
-                      ...cartItems.map<Widget>((item) {
-                        final double price = double.tryParse(item['price'].toString()) ?? 0.0;
-                        final int quantity = item['quantity'] ?? 0;
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 3,
+                            blurRadius: 7,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Order Review',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 10),
+                          ...cartItems.map<Widget>((item) {
+                            final double price = double.tryParse(item['price'].toString()) ?? 0.0;
+                            final int quantity = item['quantity'] ?? 0;
 
-                        return ListTile(
-                          title: Text(item['name'] ?? 'Unknown Product'),
-                          trailing: Text('\$${(price * quantity).toStringAsFixed(2)}'),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-              ),
-              Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 3,
-                      blurRadius: 7,
-                      offset: Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Total: \$${totalPrice.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: CustomColor.primary,
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                        textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            return ListTile(
+                              title: Text(item['name']),
+                              trailing: Text('\$${(price * quantity).toStringAsFixed(2)}'),
+                            );
+                          }).toList(),
+                        ],
                       ),
-                      onPressed: () => placeOrder(context, cartItems),
-                      child: Text('Place Order'),
                     ),
-                  ],
-                ),
-              ),
-            ],
+                  ),
+                  Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 3,
+                          blurRadius: 7,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Total: \$${totalPrice.toStringAsFixed(2)}',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: CustomColor.primary,
+                            padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                            textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          onPressed: () => placeOrder(context, cartItems),
+                          child: Text('Place Order'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           );
         },
       ),

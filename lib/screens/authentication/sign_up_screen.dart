@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:pulse/helpers/app_export.dart';
 import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
@@ -23,72 +24,88 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  /// Pick a PDF document
   Future<void> pickDocument() async {
-    // Simulate document picking
-    setState(() {
-      documentPath = "path/to/selected/document";
-    });
-  }
-
-  Future<void> registerUser() async {
-  if (formKey.currentState!.validate()) {
     try {
-      // Create user with email and password
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'], // Only allow PDFs
       );
 
-      // Send email verification
-      await userCredential.user!.sendEmailVerification();
-
-      // Get the current timestamp
-      Timestamp currentTimestamp = Timestamp.now();
-
-      // Save user details in Firestore
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'cardCVV': '',
-        'cardEx': '',
-        'cardNum': '',
-        'city': selectedCity,
-        'commercial_register': documentPath ?? '',
-        'createdDtm': currentTimestamp,
-        'email': emailController.text.trim(),
-        'lastLoginTime': currentTimestamp,
-        'phone': mobileController.text.trim(),
-        'picture': 'https://firebasestorage.googleapis.com/v0/b/pulse-provider-app.appspot.com/o/default-avatar.png',
-        'status': 0, 
-        'street': streetController.text.trim(),
-        'username': usernameController.text.trim(),
-      });
-
-      // Show popup to verify email
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Verify Your Email'),
-          content: Text('A verification email has been sent to your email address. Please check your inbox and verify your account.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the dialog
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => SignInScreen()),
-                ); // Navigate to sign-in screen
-              },
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          documentPath = result.files.single.path;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Document selected: ${result.files.single.name}')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No document selected')),
+        );
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text('Failed to pick document: $e')),
       );
     }
   }
-}
 
+  Future<void> registerUser() async {
+    if (formKey.currentState!.validate()) {
+      try {
+        UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        await userCredential.user!.sendEmailVerification();
+
+        Timestamp currentTimestamp = Timestamp.now();
+
+        await _firestore.collection('users').doc(userCredential.user!.uid).set({
+          'cardCVV': '',
+          'cardEx': '',
+          'cardNum': '',
+          'city': selectedCity,
+          'commercial_register': documentPath ?? '',
+          'createdDtm': currentTimestamp,
+          'email': emailController.text.trim(),
+          'lastLoginTime': currentTimestamp,
+          'phone': mobileController.text.trim(),
+          'picture': 'https://firebasestorage.googleapis.com/v0/b/pulse-provider-app.appspot.com/o/default-avatar.png',
+          'status': 0,
+          'street': streetController.text.trim(),
+          'username': usernameController.text.trim(),
+        });
+
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Verify Your Email'),
+            content: Text(
+              'A verification email has been sent to your email address. Please check your inbox and verify your account.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => SignInScreen()),
+                  );
+                },
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            documentPath != null ? "Document Selected" : "Upload Document",
+                            documentPath != null ? "Selected: ${documentPath!.split('/').last}" : "Upload Document",
                             style: TextStyle(color: Colors.grey),
                           ),
                         ),
@@ -213,7 +230,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget buildInputField(String label, TextEditingController controller, TextInputType inputType) {
+    Widget buildInputField(String label, TextEditingController controller, TextInputType inputType) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -239,6 +256,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
           validator: (value) {
             if (value == null || value.isEmpty) {
               return "Please enter your $label";
+            }
+            // Additional validation for phone number
+            if (label == "Mobile Number") {
+              if (!RegExp(r'^\d{10}$').hasMatch(value)) {
+                return "Mobile number must be exactly 10 digits.";
+              }
+            }
+            // Additional validation for email
+            if (label == "Email") {
+              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                return "Please enter a valid email address.";
+              }
             }
             return null;
           },
@@ -286,6 +315,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
             if (value == null || value.isEmpty) {
               return "Please enter your password";
             }
+            if (value.length < 8) {
+              return "Password must be at least 8 characters.";
+            }
+            if (!RegExp(r'[0-9]').hasMatch(value)) {
+              return "Password must include at least one number.";
+            }
             return null;
           },
         ),
@@ -293,6 +328,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ],
     );
   }
+
 
   Widget buildCityDropdown() {
     final cities = ['Amman', 'Zarqa', 'Irbid', 'Madaba', 'Aqaba'];

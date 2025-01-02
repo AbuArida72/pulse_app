@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:pulse/helpers/colors.dart';
@@ -5,15 +6,30 @@ import 'package:pulse/screens/order/order_status.dart';
 
 class MyOrderScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   Widget build(BuildContext context) {
-    final String userId = "user123"; // Replace with dynamic user ID from authentication
+    final User? user = _auth.currentUser;
+
+    if (user == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('My Orders'),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Text('Please log in to view your orders.'),
+        ),
+      );
+    }
+
+    final String userId = user.uid;
 
     return Scaffold(
       appBar: AppBar(
         title: Row(
-          mainAxisSize: MainAxisSize.min, // Ensures proper alignment
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.list_alt),
             SizedBox(width: 8),
@@ -31,7 +47,7 @@ class MyOrderScreen extends StatelessWidget {
               child: StreamBuilder(
                 stream: _firestore
                     .collection('orders')
-                    .where('userId', isEqualTo: userId) // Fetch orders for the logged-in user
+                    .where('user_id', isEqualTo: userId) // Query orders for the current user
                     .snapshots(),
                 builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -42,35 +58,55 @@ class MyOrderScreen extends StatelessWidget {
                     return Center(child: Text('No orders found.'));
                   }
 
-                  final orders = snapshot.data!.docs;
+                  // Filter and display orders based on the status logic
+                  final filteredOrders = snapshot.data!.docs.where((order) {
+                    final products = order['products'] as List<dynamic>? ?? [];
+                    final statuses = products.map((p) {
+                      final status = p['status'];
+                      return int.tryParse(status.toString());
+                    }).toList();
+
+                    if (statuses.isEmpty) {
+                      return false; // No products, remove from the list
+                    }
+
+                    if (statuses.every((status) => status == -1)) {
+                      return false; // Remove if all statuses are -1
+                    }
+
+                    return true; // Keep the order otherwise
+                  }).toList();
 
                   return ListView.builder(
-                    itemCount: orders.length,
+                    itemCount: filteredOrders.length,
                     itemBuilder: (context, index) {
-                      final order = orders[index];
+                      final order = filteredOrders[index];
                       final date = (order['date'] as Timestamp).toDate();
-                      final status = order['status'] ?? '';
+                      final products = order['products'] as List<dynamic>? ?? [];
+                      final statuses = products.map((p) {
+                        final status = p['status'];
+                        return int.tryParse(status.toString());
+                      }).toList();
 
-                      // Determine status text and color based on string values
-                      Color statusColor;
+                      // Determine the overall status of the order
                       String statusText;
-                      switch (status) {
-                        case 'In Progress':
-                          statusColor = Colors.green;
-                          statusText = 'The order is being serviced now.';
-                          break;
-                        case 'Pending':
-                          statusColor = Colors.yellow;
-                          statusText = 'The order is still pending approval.';
-                          break;
-                        case 'Approved':
-                          statusColor = Colors.blue;
-                          statusText = 'The order has been approved.';
-                          break;
-                        default:
-                          statusColor = Colors.grey;
-                          statusText = 'Unknown status.';
-                          break;
+                      Color statusColor;
+
+                      if (statuses.every((status) => status == 0)) {
+                        statusText = 'Pending';
+                        statusColor = Colors.yellow;
+                      } else if (statuses.contains(1) && statuses.any((status) => status == 0)) {
+                        statusText = 'Partial Approval';
+                        statusColor = Colors.blue;
+                      } else if (statuses.every((status) => status == 1)) {
+                        statusText = 'Approved';
+                        statusColor = Colors.green;
+                      } else if (statuses.contains(-1)) {
+                        statusText = 'Partial Rejection';
+                        statusColor = Colors.red;
+                      } else {
+                        statusText = 'Unknown';
+                        statusColor = Colors.grey;
                       }
 
                       return Container(

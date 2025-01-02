@@ -4,7 +4,6 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/screens/contact_us.dart';
 import 'package:pulse/screens/drug.dart';
 import 'package:pulse/screens/order/cart.dart';
-import 'package:pulse/screens/invoices_screen.dart';
 import 'package:pulse/screens/order/orders_screen.dart';
 import 'package:pulse/screens/payment_method/payment-method.dart';
 import 'package:pulse/screens/profile_screen.dart';
@@ -54,13 +53,6 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: Icon(Icons.receipt_long, color: CustomColor.primary),
-              title: Text('Invoices'),
-              onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => InvoicesScreen()));
-              },
-            ),
-            ListTile(
               leading: Icon(Icons.account_balance_wallet, color: CustomColor.primary),
               title: Text('Wallet'),
               onTap: () {
@@ -99,10 +91,6 @@ class DashboardScreen extends StatelessWidget {
                     SectionTitle(title: 'Featured Drugs'),
                     SizedBox(height: 10),
                     DrugGridView(firestore: _firestore),
-                    SizedBox(height: 20),
-                    SectionTitle(title: 'Categories'),
-                    SizedBox(height: 10),
-                    CategoryListView(firestore: _firestore),
                     SizedBox(height: 20),
                     SectionTitle(title: 'Top Picks for You'),
                     SizedBox(height: 10),
@@ -171,13 +159,20 @@ class DrugGridView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: firestore.collection('products').snapshots(),
+      stream: firestore
+          .collection('products')
+          .where('status', isEqualTo: "0") // Ensure the status is a string
+          .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
         }
 
         final products = snapshot.data!.docs;
+
+        if (products.isEmpty) {
+          return Center(child: Text("No products available"));
+        }
 
         return GridView.builder(
           shrinkWrap: true,
@@ -190,7 +185,8 @@ class DrugGridView extends StatelessWidget {
           itemCount: products.length,
           itemBuilder: (context, index) {
             final product = products[index].data() as Map<String, dynamic>;
-            final productId = products[index].id; // Get the document ID
+            final productId = products[index].id;
+
             return GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -233,53 +229,6 @@ class DrugGridView extends StatelessWidget {
   }
 }
 
-
-class CategoryListView extends StatelessWidget {
-  final FirebaseFirestore firestore;
-
-  CategoryListView({required this.firestore});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 100,
-      child: StreamBuilder<QuerySnapshot>(
-        stream: firestore.collection('categories').snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-
-          final categories = snapshot.data!.docs;
-
-          return ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index].data() as Map<String, dynamic>;
-              return Container(
-                width: 120,
-                margin: EdgeInsets.symmetric(horizontal: 8.0),
-                decoration: BoxDecoration(
-                  color: CustomColor.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10.0),
-                  border: Border.all(color: CustomColor.primary),
-                ),
-                child: Center(
-                  child: Text(
-                    category['name'] ?? 'No Name',
-                    style: TextStyle(color: CustomColor.primary, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-}
-
 class DrugHorizontalListView extends StatelessWidget {
   final FirebaseFirestore firestore;
 
@@ -288,7 +237,7 @@ class DrugHorizontalListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: firestore.collection('products').snapshots(),
+      stream: firestore.collection('products').where('status', isEqualTo: "0").snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(child: CircularProgressIndicator());
@@ -303,7 +252,7 @@ class DrugHorizontalListView extends StatelessWidget {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index].data() as Map<String, dynamic>;
-              final productId = products[index].id; // Get the document ID
+              final productId = products[index].id;
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
