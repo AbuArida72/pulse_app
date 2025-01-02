@@ -18,7 +18,7 @@ Responsive UI: Supports multiple platforms including Android, iOS, web, and desk
 
 Firebase Integration: Real-time database and authentication.
 
-##Installation
+## Installation
 
 Prerequisites
 
@@ -38,7 +38,7 @@ Navigate to the project directory:
 
 cd pulse_app
 
-##Install dependencies:
+## Install dependencies:
 
 flutter pub get
 
@@ -52,7 +52,7 @@ Run the app:
 
 flutter run
 
-Directory Structure
+## Directory Structure
 
 PULSE/
 ├── lib/                  # Application logic
@@ -68,7 +68,7 @@ PULSE/
 ├── firebase.json         # Firebase configuration
 └── README.md             # Project documentation
 
-Dependencies
+## Dependencies
 
 Key dependencies used in this project:
 
@@ -82,15 +82,11 @@ provider: Dependency injection and state management
 
 Refer to pubspec.yaml for the complete list.
 
-Documentation
+## Documentation
 
 For detailed documentation, please refer to the PULSE Documentation.
 
-Screenshots
-
-Include screenshots or GIFs of the app in action to make the README visually appealing.
-
-Contribution
+## Contribution
 
 Fork the repository.
 
@@ -108,7 +104,7 @@ git push origin feature-name
 
 Open a pull request.
 
-License
+## License
 
 This project is licensed under the MIT License. See LICENSE for details.
 
