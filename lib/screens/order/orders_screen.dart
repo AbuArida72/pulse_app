@@ -58,24 +58,8 @@ class MyOrderScreen extends StatelessWidget {
                     return Center(child: Text('No orders found.'));
                   }
 
-                  // Filter and display orders based on the status logic
-                  final filteredOrders = snapshot.data!.docs.where((order) {
-                    final products = order['products'] as List<dynamic>? ?? [];
-                    final statuses = products.map((p) {
-                      final status = p['status'];
-                      return int.tryParse(status.toString());
-                    }).toList();
-
-                    if (statuses.isEmpty) {
-                      return false; // No products, remove from the list
-                    }
-
-                    if (statuses.every((status) => status == -1)) {
-                      return false; // Remove if all statuses are -1
-                    }
-
-                    return true; // Keep the order otherwise
-                  }).toList();
+                  // Include all orders but handle statuses in display logic
+                  final filteredOrders = snapshot.data!.docs.toList();
 
                   return ListView.builder(
                     itemCount: filteredOrders.length,
@@ -92,7 +76,13 @@ class MyOrderScreen extends StatelessWidget {
                       String statusText;
                       Color statusColor;
 
-                      if (statuses.every((status) => status == 0)) {
+                      if (statuses.isEmpty) {
+                        statusText = 'No Products';
+                        statusColor = Colors.grey;
+                      } else if (statuses.every((status) => status == -1)) {
+                        statusText = 'Rejected';
+                        statusColor = Colors.red;
+                      } else if (statuses.every((status) => status == 0)) {
                         statusText = 'Pending';
                         statusColor = Colors.yellow;
                       } else if (statuses.contains(1) && statuses.any((status) => status == 0)) {
@@ -103,7 +93,7 @@ class MyOrderScreen extends StatelessWidget {
                         statusColor = Colors.green;
                       } else if (statuses.contains(-1)) {
                         statusText = 'Partial Rejection';
-                        statusColor = Colors.red;
+                        statusColor = Colors.orange;
                       } else {
                         statusText = 'Unknown';
                         statusColor = Colors.grey;

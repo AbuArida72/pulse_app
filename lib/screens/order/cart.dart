@@ -8,6 +8,20 @@ class CartScreen extends StatelessWidget {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  Future<void> _removeItemFromCart(
+      String userId, Map<String, dynamic> itemToRemove) async {
+    try {
+      final cartDoc = _firestore.collection('carts').doc(userId);
+
+      // Remove the specific item from the cart
+      await cartDoc.update({
+        'items': FieldValue.arrayRemove([itemToRemove]),
+      });
+    } catch (e) {
+      debugPrint('Error removing item: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final User? user = _auth.currentUser;
@@ -94,17 +108,50 @@ class CartScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Your Cart', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('Your Cart',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                       SizedBox(height: 10),
                       ...cartItems.map<Widget>((item) {
-                        final double price = double.tryParse(item['price'].toString()) ?? 0.0;
+                        final String itemName = item['name'] ?? 'Unknown Item';
+                        final String imageUrl = item['image'] ?? '';
+                        final double price =
+                            (item['price'] as num?)?.toDouble() ?? 0.0;
                         final int quantity = item['quantity'] ?? 0;
 
                         return ListTile(
-                          title: Text(item['name']),
+                          leading: imageUrl.isNotEmpty
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      8.0), 
+                                  child: Image.network(
+                                    imageUrl,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Icon(Icons.broken_image, size: 50),
+                                  ),
+                                )
+                              : Icon(Icons.image,
+                                  size: 50),
+                          title: Text(itemName),
                           subtitle: Text('Qty: $quantity'),
-                          trailing: Text(
-                              '\$${(price * quantity).toStringAsFixed(2)}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                  '\$${(price * quantity).toStringAsFixed(2)}'),
+                              IconButton(
+                                icon: Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  _removeItemFromCart(
+                                      userId, Map<String, dynamic>.from(item));
+                                },
+                              ),
+                            ],
+                          ),
                         );
                       }).toList(),
                     ],
@@ -118,14 +165,17 @@ class CartScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: CustomColor.primary,
-                        padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-                        textStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                        textStyle: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CheckoutScreen(user_id: userId),
+                            builder: (context) =>
+                                CheckoutScreen(user_id: userId),
                           ),
                         );
                       },

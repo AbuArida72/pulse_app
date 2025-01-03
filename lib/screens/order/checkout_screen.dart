@@ -31,7 +31,7 @@ class CheckoutScreen extends StatelessWidget {
         }
       }
 
-      // Save the order with the transformed products array
+      // Save the order with the products array
       final orderRef = _firestore.collection('orders').doc();
       await orderRef.set({
         'date': now,

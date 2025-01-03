@@ -5,7 +5,7 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 
 class DrugDetailsPage extends StatefulWidget {
-  final String productId; // Document ID of the product in Firestore
+  final String productId; 
 
   DrugDetailsPage({required this.productId});
 

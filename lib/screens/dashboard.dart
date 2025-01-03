@@ -161,7 +161,7 @@ class DrugGridView extends StatelessWidget {
     return StreamBuilder<QuerySnapshot>(
       stream: firestore
           .collection('products')
-          .where('status', isEqualTo: "0") // Ensure the status is a string
+          .where('status', isEqualTo: "0") 
           .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
