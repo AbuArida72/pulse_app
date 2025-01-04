@@ -138,7 +138,7 @@ class _DrugDetailsPageState extends State<DrugDetailsPage> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: Image.network(
-                        productData['images'] ?? '',
+                        productData['images'],
                         height: 250,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
