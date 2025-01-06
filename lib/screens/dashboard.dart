@@ -214,6 +214,8 @@ class DrugGridView extends StatelessWidget {
                         Text(
                           product['title'] ?? 'No Title',
                           style: TextStyle(fontWeight: FontWeight.bold),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         Text('\$${product['price'] ?? '0.00'}'),
                       ],
@@ -283,6 +285,8 @@ class DrugHorizontalListView extends StatelessWidget {
                             Text(
                               product['title'] ?? 'No Title',
                               style: TextStyle(fontWeight: FontWeight.bold),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                             ),
                             Text('\$${product['price'] ?? '0.00'}'),
                           ],
