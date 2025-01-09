@@ -27,38 +27,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Pick a PDF document
-  /// Pick a PDF document and upload it to Firebase Storage
-Future<void> pickDocument() async {
+  Future<void> pickDocument() async {
   try {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['pdf'], // Only allow PDFs
+      allowedExtensions: ['pdf'], // Allow only PDF files
     );
 
-    if (result != null && result.files.isNotEmpty) {
-      final file = File(result.files.single.path!);
-      final fileName = result.files.single.name;
+    if (result != null && result.files.single.path != null) {
+      String filePath = result.files.single.path!;
+      File file = File(filePath);
 
-      // Reference to Firebase Storage
+      // Upload file to Firebase Storage
+      final fileName = result.files.single.name;
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('commercial_registers')
           .child(fileName);
 
-      // Upload the file
       final uploadTask = storageRef.putFile(file);
-
-      // Wait for the upload to complete and get the download URL
       final snapshot = await uploadTask;
+
+      // Get the download URL
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
       setState(() {
-        documentPath = downloadUrl; // Store the Firebase URL
+        documentPath = downloadUrl; // Save the Firebase link
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Document uploaded: $fileName')),
+        SnackBar(content: Text('Document uploaded successfully')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,10 +65,11 @@ Future<void> pickDocument() async {
     }
   } catch (e) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to upload document: $e')),
+      SnackBar(content: Text('Error picking file: $e')),
     );
   }
 }
+
 
 
   Future<void> registerUser() async {
