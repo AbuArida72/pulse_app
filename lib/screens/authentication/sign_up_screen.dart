@@ -4,6 +4,9 @@ import 'package:pulse/helpers/colors.dart';
 import 'package:pulse/helpers/dimensions.dart';
 import 'package:pulse/helpers/strings.dart';
 import 'package:pulse/screens/authentication/sign_in_screen.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -25,31 +28,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Pick a PDF document
-  Future<void> pickDocument() async {
-    try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['pdf'], // Only allow PDFs
-      );
+  /// Pick a PDF document and upload it to Firebase Storage
+Future<void> pickDocument() async {
+  try {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'], // Only allow PDFs
+    );
 
-      if (result != null && result.files.isNotEmpty) {
-        setState(() {
-          documentPath = result.files.single.path;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Document selected: ${result.files.single.name}')),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('No document selected')),
-        );
-      }
-    } catch (e) {
+    if (result != null && result.files.isNotEmpty) {
+      final file = File(result.files.single.path!);
+      final fileName = result.files.single.name;
+
+      // Reference to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('commercial_registers')
+          .child(fileName);
+
+      // Upload the file
+      final uploadTask = storageRef.putFile(file);
+
+      // Wait for the upload to complete and get the download URL
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      setState(() {
+        documentPath = downloadUrl; // Store the Firebase URL
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick document: $e')),
+        SnackBar(content: Text('Document uploaded: $fileName')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No document selected')),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to upload document: $e')),
+    );
   }
+}
+
 
   Future<void> registerUser() async {
     if (formKey.currentState!.validate()) {
